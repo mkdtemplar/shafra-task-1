@@ -16,4 +16,7 @@ dropdb:
 migratedown:
 	migrate -path internal/database/migrations/ -database "postgresql://postgres:postgres@$5432:5432/user_data?sslmode=disable" -verbose down
 
-.PHONY: postgres createdb createtestdb dropdb migrateup migratedown migratecreate
+tests:
+	go test -v -cover ./...
+
+.PHONY: postgres createdb createtestdb dropdb migrateup migratedown migratecreate tests
