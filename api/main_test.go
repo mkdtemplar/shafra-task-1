@@ -9,8 +9,11 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+var config utils.Config
+
 func newTestServer(t *testing.T, store interfaces.IUserInterface) *Server {
-	config, err := utils.LoadConfig("../../..")
+	var err error
+	config, err = utils.LoadConfig("../..")
 	if err != nil {
 		t.Fatal(err)
 	}
