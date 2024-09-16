@@ -24,8 +24,6 @@ func (s *Server) CreateUser(ctx *gin.Context) {
 
 	wg.Add(1)
 
-	chResponse := make(chan *models.User)
-
 	go func() {
 		defer wg.Done()
 		if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -43,12 +41,9 @@ func (s *Server) CreateUser(ctx *gin.Context) {
 			ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 			return
 		}
-		chResponse <- newUser
-
+		ctx.JSON(http.StatusCreated, newUser)
 	}()
 
-	defer close(chResponse)
-	ctx.JSON(http.StatusCreated, <-chResponse)
 	elapsed := time.Now().Sub(start)
 	log.Printf("Request create user took %s", elapsed)
 
@@ -60,8 +55,6 @@ func (s *Server) GetUserByID(ctx *gin.Context) {
 	start := time.Now()
 
 	wg.Add(1)
-
-	chResponse := make(chan *models.User)
 
 	go func() {
 		defer wg.Done()
@@ -75,10 +68,9 @@ func (s *Server) GetUserByID(ctx *gin.Context) {
 			ctx.JSON(http.StatusNoContent, errorResponse(err))
 			return
 		}
-		chResponse <- userById
+		ctx.JSON(http.StatusOK, userById)
 	}()
-	defer close(chResponse)
-	ctx.JSON(http.StatusOK, <-chResponse)
+
 	elapsed := time.Now().Sub(start)
 	log.Printf("Request get user took %s", elapsed)
 	wg.Wait()
@@ -88,7 +80,6 @@ func (s *Server) UpdateUser(ctx *gin.Context) {
 	var req getUserRequest
 	start := time.Now()
 	wg.Add(1)
-	chResponse := make(chan *models.User)
 
 	go func() {
 		defer wg.Done()
@@ -114,11 +105,9 @@ func (s *Server) UpdateUser(ctx *gin.Context) {
 			ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 			return
 		}
-		chResponse <- userUpdated
+		ctx.JSON(http.StatusOK, userUpdated)
 	}()
 
-	defer close(chResponse)
-	ctx.JSON(http.StatusOK, <-chResponse)
 	elapsed := time.Now().Sub(start)
 	log.Printf("Request get user took %s", elapsed)
 	wg.Wait()
@@ -128,7 +117,6 @@ func (s *Server) DeleteUser(ctx *gin.Context) {
 	var req getUserRequest
 	start := time.Now()
 	wg.Add(1)
-	chResponse := make(chan error)
 
 	go func() {
 		defer wg.Done()
@@ -142,11 +130,9 @@ func (s *Server) DeleteUser(ctx *gin.Context) {
 			ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 			return
 		}
-		chResponse <- err
-
+		ctx.JSON(http.StatusAccepted, gin.H{"error": false, "message": "user deleted"})
 	}()
-	defer close(chResponse)
-	ctx.JSON(http.StatusAccepted, gin.H{"error": <-chResponse, "message": "user deleted"})
+
 	elapsed := time.Now().Sub(start)
 	log.Printf("Request delete user took %s", elapsed)
 	wg.Wait()
